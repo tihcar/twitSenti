@@ -1,0 +1,7 @@
+Flask==0.12.1
+twitter==1.18.0
+jsonschema==2.6.0
+simplejson==3.13.2
+plotly==2.1.0
+pycountry
+us==1.0.0
