@@ -1,0 +1,367 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>Twitter Sentiment Analysis</title>
+		<!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<script src="https://www.w3schools.com/lib/w3.js"></script> -->
+		<style>
+div.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background: #E8F5FD;
+	border-radius: 20px;
+}
+
+/* Style the buttons inside the tab */
+div.tab button {
+    background-color: inherit;
+    float: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+	border-radius: 10px;
+}
+
+/* Change background color of buttons on hover */
+div.tab button:hover {
+    background-color: #1DA1F2;
+}
+
+/* Create an active/current tablink class */
+div.tab button.active {
+    background-color: #1DA1F2;
+}
+
+input:invalid {
+				border: 1px dashed red;
+			}
+
+
+.likeButton:hover {
+				cursor:pointer;
+			}
+.likeButton{
+				font-family: Segoe UI,Arial,sans-serif;
+				font-size: 15px;
+				float: right;
+				color: white;
+				opacity:10;
+				border-radius: 15px
+			}
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #1DA1F2;
+    border-top: none;
+	border-radius: 20px;
+}
+
+.tabcontent {
+    -webkit-animation: fadeEffect 1s;
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+@-webkit-keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+.flex-container {
+    display: -webkit-flex;
+    display: flex;  
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+    text-align: center;
+	border-radius: 20px;
+	font-family: "Segoe UI",Arial,sans-serif;
+}
+
+.flex-container > * {
+    padding: 15px;
+    -webkit-flex: 1 100%;
+    flex: 1 100%;
+}
+header {background: #1DA1F2;color:#fff;border-radius: 25px;}
+footer {background: #1DA1F2;color:#fff;border-radius: 25px;}
+.submitButton {
+	border-radius: 20px;
+	font-family: "Segoe UI",Arial,sans-serif;
+	background: #1DA1F2;
+	color:#fff;
+}
+
+.submitButton:hover {
+			cursor:pointer}
+
+.text {
+	border-radius: 20px;
+	font-family: "Segoe UI",Arial,sans-serif;
+}
+</style>
+		<script>
+			document
+
+			function openPlot(evt, plot) {
+				// Declare all variables
+				var i, tabcontent, tablinks;
+
+				// Get all elements with class="tabcontent" and hide them
+				tabcontent = document.getElementsByClassName("tabcontent");
+				for (i = 0; i < tabcontent.length; i++) {
+					tabcontent[i].style.display = "none";
+				}
+
+				// Get all elements with class="tablinks" and remove the class "active"
+				tablinks = document.getElementsByClassName("tablinks");
+				for (i = 0; i < tablinks.length; i++) {
+					tablinks[i].className = tablinks[i].className.replace(" active", "");
+				}
+
+				// Show the current tab, and add an "active" class to the button that opened the tab
+				document.getElementById(plot).style.display = "block";
+				evt.currentTarget.className += " active";
+			}
+			// Get the element with id="defaultOpen" and click on it
+			document.getElementById("defaultOpen").click();
+
+			function waitCursor() {
+				document.getElementById("form123").style.cursor = "progress";
+				
+			}
+
+			function likeButtonActions() {
+				document.getElementById("hiddenButton").value = 'like'
+				document.getElementById('likeButtonId').style.visibility = 'hidden';
+				document.getElementById('dislikeButtonId').style.visibility = 'hidden';
+				document.getElementById('likeButtonVisibility').value = 'hidden';
+			}
+
+			function dislikeButtonActions() {
+				document.getElementById("hiddenButton").value = 'dislike'
+				document.getElementById('likeButtonId').style.visibility = 'hidden';
+				document.getElementById('dislikeButtonId').style.visibility = 'hidden';
+				document.getElementById('likeButtonVisibility').value = 'hidden';
+				
+			}
+
+			function SaveFileWorldDf() {
+				worldPlotDf = document.getElementById("worldDf").nextElementSibling
+				var filetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8"
+				var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
+
+				for (j = 0; j < worldPlotDf.rows.length; j++) {
+					tab_text = tab_text + worldPlotDf.rows[j].innerHTML + "</tr>";
+					//tab_text=tab_text+"</tr>";
+				}
+				var texttosave = new Blob([tab_text], { type: "application/vnd.ms-excel" })
+				var textToSaveAsURL = window.URL.createObjectURL(texttosave)
+
+				var downloadLink = document.createElement("a");
+				downloadLink.download = "worldMapfile.xls";
+				downloadLink.innerHTML = "Download File";
+				downloadLink.href = textToSaveAsURL;
+				//downloadLink.onclick = destroyClickedElement;
+				downloadLink.style.display = "none";
+				document.body.appendChild(downloadLink);
+
+				downloadLink.click();
+
+			}
+
+			function destroyClickedElement(event) {
+				document.body.removeChild(event.target);
+			}
+		</script>
+    </head>
+    <body>
+	<div class="flex-container" id="form123">
+		<header>
+			<h1>Twitter Sentiment Analysis</h1>
+			<div class="tab">
+				<!--<button class="tablinks" onclick="openPlot(event, 'Scatter')" id="defaultOpen">Scatter</button>-->
+				<button class="tablinks" onclick="openPlot(event, 'Bar')">Bar Plot</button>
+				<button class="tablinks" onclick="openPlot(event, 'Map')">USA Map</button>
+				<button class="tablinks" onclick="openPlot(event, 'World Map')">World Map</button>
+				<button class="tablinks" onclick="openPlot(event, 'About')">About</button>
+			</div>
+		</header>
+		<div id="About" class="tabcontent">
+			<div align="left">
+				<h4>
+					With a vision of analyzing and visualizing current Twitter sentiments at various location, the real-time Twitter data was extracted, processed, transformed & analyzed using a Python script.<br />
+					The Web-based & desktop versions of the application extracts live tweets from the Twitter, parse user location, calculates the polarity, subjectivity, reputation, and visualizes the information on Plotly/Tableau.<br />
+					The application is used to predict the popularity of any election candidate say #Trump can provide the popularity of President Trump, which can be a good indicator whether Donald Trump will be re-elected as the US President in upcoming elections.<br />
+				</h4>
+			</div>
+			<h3>
+				Created By: Rachit Pabreja & Nitesh Sharma<br />
+				Master of Information Technology & Analytics graduate from Rutgers Business School, New Jersey<br />
+			</h3>
+			<h4><a href="https://rachitpabreja.weebly.com/">Rachit Pabreja Portfolio</a><t/>
+			<a href="https://nfsharma.weebly.com/">Nitesh Sharma Portfolio</a></h4>
+			<h4 align="right">
+				Guidance By: Dr. Vijay Atluri<br />
+				Director of Master of Information Technology & Analytics
+				Rutgers Business School, New Jersey<br />
+				Inspiration : Ussama Yakub<br />
+				PhD student at Rutgers Business School, New Jersey
+			</h4>
+			<div id="About_page"> </div>
+		</div>
+	<!--<div id="Scatter" class="tabcontent">
+		<h3>Scatter Plot</h3>
+		<div id="Scatter_plot"> </div>
+	</div>-->
+	<div id="Bar" class="tabcontent">
+		<h3>Bar Plot</h3>
+		<div id="Bar_plot">
+		</div>
+	</div>
+	<div id="Map" class="tabcontent">
+		<h3>
+			{% if not country_tweets_count%}
+			Map Plot
+			{% endif %}
+		</h3>
+		<div id="Map_plot"  style="float:left"></div>
+		<div style="float:left; margin-left:2px;overflow:auto">
+			<p>
+				{% if country_tweets_count%}
+				Total tweets: {{country_tweets_count}}
+				{% endif %}
+			</p>
+			<p>
+				{% if country_tweets_count%}
+				{{ summary_df_Country | safe }}
+				{% endif %}
+			</p>
+		</div>
+	</div>
+	<div id="World Map" class="tabcontent" >
+		<h3>
+			{% if not world_tweets_count%}
+			World Map Plot
+			{% endif %}
+		</h3>
+		<!--<div id="World_Map_plot" align="justify" style="height:500px; border:1px solid black">-->
+		<div id="World_Map_plot" style="float:left;overflow:auto"></div>
+		<div style="float:left; margin-left: 2px;overflow:auto">
+			<p>{% if country_tweets_count%}
+			Total tweets: {{world_tweets_count}}
+			{% endif %}
+	       </p>
+	       <p id="worldDf">{{ world_country_df | safe }}</p>
+		</div>
+		<br />
+		<div style="clear:both" align="center">
+			{% if world_tweets_count%}
+			Polarity identifies the context of a text, +ive or -ive
+			{% endif %}
+		</div>
+		<!--<div align="right">
+			{% if world_tweets_count%}
+			<button class="likeButton" style="background-color:cornflowerblue" type="button" onclick="SaveFileWorldDf()">Export</button>
+			{% endif %}
+		</div>-->
+	</div>		
+<br>     
+<form method="post">
+	<h3>Seek the sentiments for any Twitter Handle</h3>
+	<!--<img src="C:\Users\sarni\source\repos\SentimentSeekerVSTS\ApnaProject\templates\spinner.gif" class="loadingGif"
+		 style="cursor:progress"/>-->
+	<br />
+	<div align="center" style="color:green">
+		{% if world_tweets_count%}
+		Tweets are successfully retreived. Please check the plots.
+		{%endif%}
+	</div>
+	<div align="center" style="color:red">
+		{% if exception%}
+		Cannot retreive tweets from Twitter :( :(
+		<br />
+		Either the handle does not exist or there are no tweets for this handle
+		<br />
+		<br/>
+		Please try another Twitter handle
+		{%endif%}
+	</div>
+	<br />
+	<div class="text" >
+		Number of Tweets:
+		<select name="tweetCountDropDown">
+			<option value="100">200</option>
+			<option value="300">300</option>
+			<option value="500">500</option>
+			<option value="1000">1000</option>
+		</select>
+	</div>
+	<br />
+	<div class="input submit">
+		<lable for="twitterhandle">Enter Twitter Handle</lable>
+		<input type="text" name="twitterhandle" required/>
+		<input id="likeButtonVisibility" type="hidden" name="likeButtonVisibilityValue" />
+		<button type="submit" class="submitButton" onclick="waitCursor()" >Query</Button>
+	</div>
+	
+</form>
+
+		<br>
+		<br>
+		<footer>
+			Users who found the site useful: {{likesCount}}
+			<br />
+			Developed by Nitesh Sharma & Rachit Pabreja (Beta Version)
+			<br />
+			Contributors: Dr. Vijay Atluri & Ussama Yakub
+
+			<!-- D3.js -->
+			<form action="/likeButtonAction" method="post">
+				<div align="right">
+					<button class="likeButton" type="submit" name="DisLikeButton" id="dislikeButtonId" onclick="dislikeButtonActions()" style="background-color:salmon; visibility:{{buttonVisibility}}">Dislike</button>
+					<button class="likeButton" type="submit" name="likeButton" id="likeButtonId" onclick="likeButtonActions()" style="background-color:mediumseagreen;margin-right:5px; visibility:{{buttonVisibility}}">Like</button>
+					<input id="hiddenButton" type="hidden" name="hiddenButtonValue" />
+					<!--<label align="right" id="likeCountLabel" name="likesCount" style="float:right; font-family:Segoe UI,Arial,sans-serif"></label>-->
+				</div>
+			</form>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+			<!-- jQuery -->
+			<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+			<!-- Plotly.js -->
+			<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+			<script type="text/javascript">
+				//World Map
+				var world_graphs = {{worldPlot | safe }}
+				var world_map_ids = {{world_map_ids | safe }}
+				for (var i in world_graphs) {
+					Plotly.plot(world_map_ids[i] + '_plot', // the ID of the div, created above
+                        world_graphs[i].data,
+						world_graphs[i].layout || {});
+				}
+				//USA Map
+				var usa_map_graphs = {{usaMapPlot | safe }}
+				var usa_map_ids = {{usa_map_ids | safe }}
+				for (var i in usa_map_graphs) {
+					Plotly.plot(usa_map_ids[i] + '_plot', // the ID of the div, created above
+						usa_map_graphs[i].data,
+						usa_map_graphs[i].layout || {});
+				}
+				//bar plot
+				var bar_graphs = {{barPlot | safe }}
+				var bar_ids = {{bar_ids | safe }}
+				for (var i in bar_graphs) {
+					Plotly.plot(bar_ids[i] + '_plot', // the ID of the div, created above
+						bar_graphs[i].data,
+						bar_graphs[i].layout || {});
+				}
+			</script>
+		</footer>	
+	</div>	
+    </body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>Twitter Sentiment Analysis</title>
+		<!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<script src="https://www.w3schools.com/lib/w3.js"></script> -->
+		<style>
+div.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background: #E8F5FD;
+	border-radius: 20px;
+}
+
+/* Style the buttons inside the tab */
+div.tab button {
+    background-color: inherit;
+    float: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+	border-radius: 10px;
+}
+
+/* Change background color of buttons on hover */
+div.tab button:hover {
+    background-color: #1DA1F2;
+}
+
+/* Create an active/current tablink class */
+div.tab button.active {
+    background-color: #1DA1F2;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #1DA1F2;
+    border-top: none;
+	border-radius: 20px;
+}
+
+.tabcontent {
+    -webkit-animation: fadeEffect 1s;
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+@-webkit-keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+.flex-container {
+    display: -webkit-flex;
+    display: flex;  
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+    text-align: center;
+	border-radius: 20px;
+	font-family: "Segoe UI",Arial,sans-serif;
+}
+
+.flex-container > * {
+    padding: 15px;
+    -webkit-flex: 1 100%;
+    flex: 1 100%;
+}
+header {background: #1DA1F2;color:#fff;border-radius: 25px;}
+footer {background: #1DA1F2;color:#fff;border-radius: 25px;}
+.submitButton {
+	border-radius: 20px;
+	font-family: "Segoe UI",Arial,sans-serif;
+	background: #1DA1F2;
+	color:#fff;
+}
+.text {
+	border-radius: 20px;
+	font-family: "Segoe UI",Arial,sans-serif;
+}
+</style>
+<script>
+function openPlot(evt, plot) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(plot).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+    </head>
+    <body>
+	<div class="flex-container">
+	<header>
+  <h1>Twitter Sentiment Analysis</h1>
+    <div class="tab">
+  	  <button class="tablinks" onclick="openPlot(event, 'Scatter')" id = "defaultOpen">Scatter</button>
+	  <button class="tablinks" onclick="openPlot(event, 'Bar')">Bar</button>
+	  <button class="tablinks" onclick="openPlot(event, 'Map')">Map</button>
+	  <button class="tablinks" onclick="openPlot(event, 'World Map')">World Map</button>
+</div>
+</header>
+
+<div id="Scatter" class="tabcontent">
+  <h3>Scatter Plot Polarity vs Subjectivity</h3>
+  <div id="Scatter_plot">
+  </div>
+</div>
+<div id="Bar" class="tabcontent">
+  <h3>Bar Plot</h3>
+  <div id="Bar_plot">
+  </div>
+</div>
+<div id="Map" class="tabcontent">
+  <h3>Map Plot</h3>
+  <div id="Map_plot">
+  </div>
+</div>
+<div id="World Map" class="tabcontent">
+  <h3>World Map Plot</h3>
+  <div id="World_Map_plot">
+  </div>
+</div>
+<br>
+<br>
+{% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message[1] }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+	
+		<br>
+		<br>
+		<footer>
+Developed by Nitesh Sharma & Rachit Pabreja
+<br>
+Contributors: Dr. Vijay Atluri & Ussama Yakub
+    <!-- D3.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script type="text/javascript">
+        var scatter_graphs = {{scatterPlot | safe}};
+		var bar_graphs = {{barPlot | safe}}
+		var scatter_ids = {{scatter_ids | safe}};
+		var bar_ids = {{bar_ids | safe}};
+		var map_graphs = {{mapPlot | safe}}
+		var map_ids = {{map_ids | safe}}
+		var world_graphs = {{worldPlot | safe}}
+		var world_map_ids = {{world_map_ids | safe}}
+        for(var i in scatter_graphs) {
+            Plotly.plot(scatter_ids[i]+'_plot', // the ID of the div, created above
+                        scatter_graphs[i].data,
+                        scatter_graphs[i].layout || {});
+        }
+		for(var i in bar_graphs) {
+            Plotly.plot(bar_ids[i]+'_plot', // the ID of the div, created above
+                        bar_graphs[i].data,
+                        bar_graphs[i].layout || {});
+        }
+		for(var i in map_graphs) {
+            Plotly.plot(map_ids[i]+'_plot', // the ID of the div, created above
+                        map_graphs[i].data,
+                        map_graphs[i].layout || {});
+        }
+		for(var i in map_graphs) {
+            Plotly.plot(world_map_ids[i]+'_plot', // the ID of the div, created above
+                        world_graphs[i].data,
+                        world_graphs[i].layout || {});
+        }
+    </script>
+</footer>
+	</div>			
+    </body>
+
+</html>
